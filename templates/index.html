@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Fingerprint Scanner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Fingerprint Scanner</h1>
+        <canvas id="fingerprintCanvas" width="300" height="300">
+            Your browser does not support the HTML5 canvas tag.
+        </canvas>
+        <button id="testButton">TEST</button>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        document.getElementById('testButton').addEventListener('click', function() {
+            fetch('/capture')
+                .then(response => response.json())
+                .then(data => {
+                    const msgElem = document.getElementById('message');
+                    if (data.status === "success") {
+                        const imgData = data.image;
+                        const canvas = document.getElementById('fingerprintCanvas');
+                        const ctx = canvas.getContext('2d');
+                        const img = new Image();
+                        img.onload = function() {
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        };
+                        img.src = 'data:image/png;base64,' + imgData;
+                        msgElem.textContent = 'Fingerprint captured successfully!';
+                        msgElem.style.color = 'green';
+                    } else {
+                        msgElem.textContent = data.message || 'Error capturing fingerprint.';
+                        msgElem.style.color = 'red';
+                    }
+                })
+                .catch(error => {
+                    const msgElem = document.getElementById('message');
+                    msgElem.textContent = 'Error: ' + error;
+                    msgElem.style.color = 'red';
+                });
+        });
+    </script>
+</body>
+</html>
